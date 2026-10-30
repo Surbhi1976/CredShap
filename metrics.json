@@ -1,14 +1,53 @@
 {
-  "model": "XGBoost, probability-calibrated (sigmoid, 5-fold)",
-  "test_rows": 6305,
-  "roc_auc": 0.9486,
-  "accuracy": 0.9381,
-  "precision": 0.9793,
-  "recall": 0.7291,
-  "f1": 0.8359,
-  "threshold": 0.7251,
-  "baseline_logistic_regression": {"accuracy": 0.8193, "precision": 0.5580, "recall": 0.7871, "f1": 0.6531},
-  "confusion_matrix": {"true_negative": 4922, "false_positive": 21, "false_negative": 369, "true_positive": 993},
-  "training_rows": 31522,
-  "default_rate": 0.2159
+ "model": "XGBoost, probability-calibrated (sigmoid, 5-fold)",
+ "test_rows": 6305,
+ "roc_auc": 0.9486,
+ "accuracy": 0.9381,
+ "precision": 0.9793,
+ "recall": 0.7291,
+ "f1": 0.8359,
+ "threshold": 0.7251,
+ "baseline_logistic_regression": {
+  "accuracy": 0.8193,
+  "precision": 0.558,
+  "recall": 0.7871,
+  "f1": 0.6531
+ },
+ "confusion_matrix": {
+  "true_negative": 4922,
+  "false_positive": 21,
+  "false_negative": 369,
+  "true_positive": 993
+ },
+ "training_rows": 31522,
+ "default_rate": 0.2159,
+ "xgboost_initial": {
+  "accuracy": 0.9186,
+  "precision": 0.8233,
+  "recall": 0.7937,
+  "f1": 0.8082
+ },
+ "threshold_tradeoff": [
+  {
+   "threshold": 0.3,
+   "precision": 0.8099,
+   "recall": 0.7915,
+   "wrongly_rejected": 253,
+   "missed": 284
+  },
+  {
+   "threshold": 0.5,
+   "precision": 0.9156,
+   "recall": 0.757,
+   "wrongly_rejected": 95,
+   "missed": 331
+  },
+  {
+   "threshold": 0.7251,
+   "precision": 0.9793,
+   "recall": 0.7291,
+   "wrongly_rejected": 21,
+   "missed": 369
+  }
+ ]
 }
