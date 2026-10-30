@@ -1,215 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Credit Ledger — Loan Risk Assessment</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CredShap: loan default risk assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#0f1b2d;--muted:#5a6878;--line:#dce2ea;--field:#f4f6f9;--brand:#12355b;--brandtxt:#fff;--ok:#1b7a55;--mid:#b27a14;--bad:#b3322a}
+@media(prefers-color-scheme:dark){:root{--bg:#0b121b;--card:#121c28;--ink:#e8eef5;--muted:#93a3b4;--line:#243242;--field:#0b121b;--brand:#5aa0e0;--brandtxt:#08121d;--ok:#4cc38a;--mid:#e0a64a;--bad:#f0746c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:16px}
+.brand h1{font:500 28px/1.1 Newsreader,Georgia,serif;margin:0}.brand p{margin:2px 0 14px;color:var(--muted);font-size:13px}
+nav{display:flex;gap:4px}
+nav button{font:inherit;font-weight:500;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;cursor:pointer}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--brand)}
+main{padding:28px 0 48px}
+.grid{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{font-weight:600;font-size:16px;padding:0;margin-bottom:12px}
+.row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.f>span,.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input[type=number],select{width:100%;padding:10px 12px;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px}
+input:focus-visible,select:focus-visible,button:focus-visible,.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.full{grid-column:1/-1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--field)}
+.seg label{flex:1}.seg input{position:absolute;opacity:0}
+.seg span{display:block;text-align:center;padding:9px 6px;font-size:14px;cursor:pointer;border-right:1px solid var(--line)}
+.seg label:last-child span{border-right:0}
+.seg input:checked+span{background:var(--brand);color:var(--brandtxt);font-weight:600}
+.go{font:inherit;font-weight:600;background:var(--brand);color:var(--brandtxt);border:0;border-radius:8px;padding:12px 22px;cursor:pointer}
+.go:disabled{opacity:.6;cursor:wait}
+.res{position:sticky;top:20px}
+.res h2{font:600 13px/1 "IBM Plex Sans";color:var(--muted);margin:0 0 14px}
+.verdict{font:500 28px/1.15 Newsreader,Georgia,serif;margin:0}
+.pct{font:500 60px/1 Newsreader,Georgia,serif;margin:8px 0 2px}
+.gauge{position:relative;height:10px;border-radius:5px;margin:38px 0 8px;background:linear-gradient(90deg,var(--ok) 0 30%,var(--mid) 30% var(--t),var(--bad) var(--t) 100%)}
+.pin{position:absolute;top:-7px;width:4px;height:24px;border-radius:2px;background:var(--ink);transform:translateX(-2px);transition:left .5s}
+.pin b{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:12px;background:var(--ink);color:var(--card);padding:2px 7px;border-radius:5px;white-space:nowrap}
+.scale{display:flex;font-size:12px;color:var(--muted)}
+.facts{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
+.facts div{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}.facts b{color:var(--ink)}
+.drv{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;font-size:13px;padding:4px 0}
+.track{position:relative;height:8px;background:var(--line);border-radius:4px}
+.track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+.bar{position:absolute;top:0;bottom:0;border-radius:4px}.up{left:50%;background:var(--bad)}.down{right:50%;background:var(--ok)}
+.sec h3{font-size:14px;font-weight:600;margin:18px 0 2px;padding-top:14px;border-top:1px solid var(--line)}
+.cap,.empty{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.warn,.stalemsg{margin:0 0 12px;padding:8px 10px;border:1px solid var(--mid);border-radius:8px;font-size:12.5px}
+.res.stale .sec{opacity:.35}.err{color:var(--bad)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:16px 0 8px}
+.tile{padding:16px;border:1px solid var(--line);border-radius:10px}
+.tile b{display:block;font:500 34px/1.1 Newsreader,Georgia,serif}.tile strong{font-size:13px}.tile p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:860px){.cols{grid-template-columns:1fr}}
+.m .card{margin-top:20px}.m .cols .card{margin-top:0}.m{display:grid;gap:0}.m .cols{margin-top:20px}
+.card>h2{font-size:17px;font-weight:600;margin:0 0 4px}.card>p{color:var(--muted);font-size:13.5px;margin:0 0 14px;max-width:75ch}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;font-size:13px;align-items:stretch}
+.cm .h{color:var(--muted);align-self:center;text-align:center;padding:4px}
+.cm .c{padding:14px;border-radius:8px;border:1px solid var(--line)}.cm .c b{display:block;font:500 26px/1.1 Newsreader,Georgia,serif}
+.good{background:color-mix(in srgb,var(--ok) 14%,transparent)}.badc{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.hl td{font-weight:600}
+ol,ul{margin:0;padding-left:20px;font-size:13.5px;color:var(--muted)}li{margin:6px 0}li b{color:var(--ink);font-weight:600}
+.note{margin-top:28px;font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.pin{transition:none}}
+</style>
 </head>
 <body>
-
-<div class="page">
-
-  <header class="masthead">
-    <div class="masthead__mark">
-      <svg class="masthead__seal" viewBox="0 0 40 40" aria-hidden="true">
-        <circle cx="20" cy="20" r="18" />
-        <circle cx="20" cy="20" r="13" />
-        <path d="M20 10 L20 30 M10 20 L30 20" />
-      </svg>
-      <div>
-        <h1>Credit Ledger</h1>
-        <p class="masthead__tag">An underwriting desk for consumer loan applications</p>
-      </div>
-    </div>
-    <div class="masthead__status" id="apiStatus">
-      <span class="dot" id="apiDot"></span>
-      <span id="apiStatusText">checking service…</span>
-    </div>
-  </header>
-
-  <form class="ledger" id="riskForm" novalidate>
-
-    <fieldset class="ledger__section">
-      <legend>01 — Applicant</legend>
-
-      <div class="row">
-        <label for="person_age">Age</label>
-        <div class="field">
-          <input type="number" id="person_age" name="person_age" min="18" max="100" step="1" value="30" required />
-          <span class="unit">years</span>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="person_income">Annual income</label>
-        <div class="field">
-          <span class="unit unit--prefix">₹</span>
-          <input type="number" id="person_income" name="person_income" min="0" step="1000" value="600000" required />
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="person_home_ownership">Home ownership</label>
-        <div class="field">
-          <select id="person_home_ownership" name="person_home_ownership" required>
-            <option value="RENT">Renting</option>
-            <option value="MORTGAGE">Mortgage</option>
-            <option value="OWN">Owns outright</option>
-            <option value="OTHER">Other</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="person_emp_length">Employment length</label>
-        <div class="field">
-          <input type="number" id="person_emp_length" name="person_emp_length" min="0" max="60" step="0.5" value="5" required />
-          <span class="unit">years</span>
-        </div>
-      </div>
-    </fieldset>
-
-    <fieldset class="ledger__section">
-      <legend>02 — Loan request</legend>
-
-      <div class="row">
-        <label for="loan_intent">Purpose</label>
-        <div class="field">
-          <select id="loan_intent" name="loan_intent" required>
-            <option value="PERSONAL">Personal</option>
-            <option value="EDUCATION">Education</option>
-            <option value="MEDICAL">Medical</option>
-            <option value="VENTURE">Venture</option>
-            <option value="HOMEIMPROVEMENT">Home improvement</option>
-            <option value="DEBTCONSOLIDATION">Debt consolidation</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="loan_grade">Loan grade</label>
-        <div class="field">
-          <select id="loan_grade" name="loan_grade" required>
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-            <option value="E">E</option>
-            <option value="F">F</option>
-            <option value="G">G</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="loan_amnt">Loan amount</label>
-        <div class="field">
-          <span class="unit unit--prefix">₹</span>
-          <input type="number" id="loan_amnt" name="loan_amnt" min="0" step="500" value="100000" required />
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="loan_int_rate">Interest rate</label>
-        <div class="field">
-          <input type="number" id="loan_int_rate" name="loan_int_rate" min="0" max="40" step="0.01" value="11.5" required />
-          <span class="unit">%</span>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="loan_percent_income">Loan as % of income</label>
-        <div class="field">
-          <input type="number" id="loan_percent_income" name="loan_percent_income" min="0" max="1" step="0.01" value="0.17" required />
-          <span class="unit">ratio</span>
-        </div>
-      </div>
-      <p class="hint" id="percentHint">Calculated from income and loan amount — edit if you need to override it.</p>
-    </fieldset>
-
-    <fieldset class="ledger__section">
-      <legend>03 — Credit bureau file</legend>
-
-      <div class="row">
-        <label for="cb_person_default_on_file">Prior default on file</label>
-        <div class="field">
-          <select id="cb_person_default_on_file" name="cb_person_default_on_file" required>
-            <option value="N">No</option>
-            <option value="Y">Yes</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="cb_person_cred_hist_length">Credit history length</label>
-        <div class="field">
-          <input type="number" id="cb_person_cred_hist_length" name="cb_person_cred_hist_length" min="0" max="60" step="1" value="6" required />
-          <span class="unit">years</span>
-        </div>
-      </div>
-    </fieldset>
-
-    <div class="submit-row">
-      <button type="submit" id="submitBtn">
-        <span class="btn-label">Assess risk</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
-      <p class="error-note" id="errorNote" role="alert" hidden></p>
-    </div>
-
+<header class="top"><div class="wrap">
+  <div class="brand"><h1>CredShap</h1><p>Loan default risk assessment with explainable machine learning</p></div>
+  <nav role="tablist"><button role="tab" aria-selected="true" data-tab="assess">Risk assessment</button><button role="tab" aria-selected="false" data-tab="model">Model details</button></nav>
+</div></header>
+<main class="wrap">
+<section id="assess"><div class="grid">
+  <form id="f" class="card" novalidate>
+    <fieldset><legend>Applicant</legend><div class="row">
+      <label class="f"><span>Age</span><input name="person_age" type="number" min="18" max="100" value="30" required></label>
+      <label class="f"><span>Annual income ($)</span><input name="person_income" type="number" min="1" value="60000" required></label>
+      <div class="full"><span class="lbl">Home ownership</span><div class="seg" data-name="person_home_ownership" data-opts="RENT:Rent,MORTGAGE:Mortgage,OWN:Own,OTHER:Other" data-def="RENT"></div></div>
+      <label class="f"><span>Years employed</span><input name="person_emp_length" type="number" min="0" max="60" step="0.5" value="4" required></label>
+    </div></fieldset>
+    <fieldset><legend>Loan</legend><div class="row">
+      <label class="f"><span>Purpose</span><select name="loan_intent"><option value="PERSONAL">Personal</option><option value="EDUCATION">Education</option><option value="MEDICAL">Medical</option><option value="VENTURE">Business venture</option><option value="HOMEIMPROVEMENT">Home improvement</option><option value="DEBTCONSOLIDATION">Debt consolidation</option></select></label>
+      <label class="f"><span>Loan amount ($)</span><input name="loan_amnt" type="number" min="1" value="10000" required></label>
+      <div class="full"><span class="lbl">Loan grade (A is the safest)</span><div class="seg" data-name="loan_grade" data-opts="A,B,C,D,E,F,G" data-def="B"></div></div>
+      <label class="f"><span>Interest rate (%)</span><input name="loan_int_rate" type="number" min="0" max="40" step="0.01" value="11" required></label>
+      <div class="f"><span>Loan as share of income</span><b id="lpi" style="display:block;padding:10px 0">17%</b></div>
+    </div></fieldset>
+    <fieldset><legend>Credit history</legend><div class="row">
+      <div><span class="lbl">Previous default on file</span><div class="seg" data-name="cb_person_default_on_file" data-opts="N:No,Y:Yes" data-def="N"></div></div>
+      <label class="f"><span>Credit history (years)</span><input name="cb_person_cred_hist_length" type="number" min="0" max="60" value="6" required></label>
+    </div></fieldset>
+    <button class="go" id="go" type="submit">Assess application</button>
   </form>
+  <aside class="card res" id="out" aria-live="polite"><h2>Assessment</h2><p class="empty">Enter the applicant and loan details, then select <b>Assess application</b>.</p></aside>
+</div></section>
+<section id="model" class="m" hidden><p class="empty">Loading model details…</p></section>
+<p class="note">Demo project trained on a public credit risk dataset. Not for real lending decisions.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id),f=$('f'),out=$('out');
+const NUM=['person_age','person_income','person_emp_length','loan_amnt','loan_int_rate','cb_person_cred_hist_length'];
+const pc=x=>(x*100).toFixed(1)+'%',pc0=x=>(x*100).toFixed(0)+'%';
+document.querySelectorAll('.seg').forEach(s=>s.innerHTML=s.dataset.opts.split(',').map(o=>{const[v,l]=o.split(':');
+  return `<label><input type="radio" name="${s.dataset.name}" value="${v}" ${v===s.dataset.def?'checked':''}><span>${l||v}</span></label>`}).join(''));
+function share(){const i=+f.person_income.value,a=+f.loan_amnt.value;$('lpi').textContent=i>0&&a>0?Math.round(a/i*100)+'%':'n/a'}
+f.addEventListener('input',()=>{share();
+  if(out.querySelector('.sec')&&!out.classList.contains('stale')){out.classList.add('stale');
+    out.insertAdjacentHTML('afterbegin','<p class="stalemsg">Inputs changed. Select Assess application to update.</p>')}});
+share();
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $('assess').hidden=b.dataset.tab!=='assess';$('model').hidden=b.dataset.tab!=='model'});
+function drivers(d){if(!d||!d.length)return'';const mx=Math.max(...d.map(x=>Math.abs(x.impact)));
+  return `<h3>What drove this score</h3><p class="cap">SHAP values: red pushes the risk up, green pushes it down.</p>`+
+  d.map(x=>`<div class="drv"><span>${x.feature}</span><div class="track"><div class="bar ${x.impact>0?'up':'down'}" style="width:${Math.abs(x.impact)/mx*50}%"></div></div></div>`).join('')}
+function show(r){out.classList.remove('stale');
+  const col={Low:'--ok',Medium:'--mid',High:'--bad'}[r.risk_band],t=r.threshold*100;
+  out.innerHTML=`<h2>Assessment</h2><div class="sec">
+    <p class="verdict" style="color:var(${col})">${r.decision==='Approved'?'Likely to repay':'High default risk'}</p>
+    <div class="pct">${pc(r.probability)}</div><div class="empty">estimated chance of default</div>
+    <div class="gauge" style="--t:${t}%"><div class="pin" style="left:${Math.min(r.probability*100,99)}%"><b>${pc(r.probability)}</b></div></div>
+    <div class="scale"><span style="width:30%">Low</span><span style="width:${t-30}%">Medium</span><span>Rejected above ${pc(r.threshold)}</span></div>
+    <div class="facts"><div>Decision<b>${r.decision}</b></div><div>Risk band<b>${r.risk_band}</b></div></div>
+    ${(r.warnings||[]).map(w=>`<div class="warn" style="margin-top:14px">${w}</div>`).join('')}${drivers(r.drivers)}</div>`}
+f.addEventListener('submit',async e=>{e.preventDefault();if(!f.reportValidity())return;
+  const body=Object.fromEntries(new FormData(f));NUM.forEach(k=>body[k]=Number(body[k]));
+  $('go').disabled=true;$('go').textContent='Assessing…';
+  try{const res=await fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok){const d=data.detail&&data.detail[0];throw new Error(d?`${d.loc.slice(-1)[0]}: ${d.msg}`:'Request failed')}show(data)}
+  catch(err){out.innerHTML=`<h2>Assessment</h2><p class="err">Could not assess the application. ${err.message}</p>`}
+  finally{$('go').disabled=false;$('go').textContent='Assess application'}});
 
-  <section class="verdict" id="verdict" aria-live="polite" hidden>
-    <div class="verdict__inner">
-
-      <div class="verdict__gauge">
-        <svg viewBox="0 0 200 200" class="gauge">
-          <circle class="gauge__track" cx="100" cy="100" r="86" />
-          <circle class="gauge__fill" id="gaugeFill" cx="100" cy="100" r="86" />
-          <line class="gauge__threshold" id="gaugeThreshold" x1="100" y1="14" x2="100" y2="30" />
-        </svg>
-        <div class="gauge__readout">
-          <span class="gauge__number" id="probNumber">0</span><span class="gauge__percent">%</span>
-          <span class="gauge__caption">default probability</span>
-        </div>
-      </div>
-
-      <div class="verdict__detail">
-        <div class="stamp-wrap">
-          <div class="stamp" id="stampBadge">
-            <span id="stampText">LOW RISK</span>
-          </div>
-        </div>
-
-        <dl class="ledger-facts">
-          <div>
-            <dt>Default probability</dt>
-            <dd id="factProb">—</dd>
-          </div>
-          <div>
-            <dt>Decision threshold</dt>
-            <dd id="factThreshold">—</dd>
-          </div>
-          <div>
-            <dt>Model verdict</dt>
-            <dd id="factResult">—</dd>
-          </div>
-        </dl>
-      </div>
-
-    </div>
-  </section>
-
-  <footer class="foot">
-    <p>Figures are model estimates, not a lending decision. Recorded for reference only.</p>
-  </footer>
-
-</div>
-
-<script src="script.js"></script>
+fetch('/api/model-info').then(r=>r.json()).then(m=>{const c=m.confusion_matrix,b=m.baseline_logistic_regression,x=m.xgboost_initial,P=v=>(v*100).toFixed(1)+'%';
+  const row=(n,o,h)=>`<tr${h?' class="hl"':''}><td>${n}</td><td class="n">${P(o.accuracy)}</td><td class="n">${P(o.precision)}</td><td class="n">${P(o.recall)}</td><td class="n">${P(o.f1)}</td></tr>`;
+  $('model').innerHTML=`
+  <div class="card"><h2>How well the model works</h2>
+    <p>Results on ${m.test_rows.toLocaleString()} loans held back from training (20% of ${m.training_rows.toLocaleString()} cleaned loans, ${pc0(m.default_rate)} of which defaulted). The model never saw these loans while learning.</p>
+    <div class="tiles">
+      <div class="tile"><strong>ROC-AUC</strong><b>${m.roc_auc.toFixed(3)}</b><p>How well it ranks risky loans above safe ones. 1.0 is perfect, 0.5 is a coin flip.</p></div>
+      <div class="tile"><strong>Precision</strong><b>${P(m.precision)}</b><p>When the model flags a loan as a default, it is right this often.</p></div>
+      <div class="tile"><strong>Recall</strong><b>${P(m.recall)}</b><p>Share of the real defaults the model catches.</p></div>
+      <div class="tile"><strong>F1 score</strong><b>${P(m.f1)}</b><p>One number balancing precision and recall.</p></div>
+    </div></div>
+  <div class="cols">
+    <div class="card"><h2>Where it is right and wrong</h2><p>Each of the ${m.test_rows.toLocaleString()} test loans falls in one box.</p>
+      <div class="cm"><span></span><span class="h">Model: repays</span><span class="h">Model: defaults</span>
+        <span class="h">Actually repaid</span><div class="c good"><b>${c.true_negative.toLocaleString()}</b>correctly approved</div><div class="c badc"><b>${c.false_positive}</b>good loans rejected</div>
+        <span class="h">Actually defaulted</span><div class="c badc"><b>${c.false_negative}</b>defaults missed</div><div class="c good"><b>${c.true_positive}</b>defaults caught</div></div></div>
+    <div class="card"><h2>Choosing the decision line</h2><p>A loan is rejected when its default probability passes the line. Moving it trades one kind of mistake for the other.</p>
+      <table><tr><th>Line</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">Good loans rejected</th><th class="n">Defaults missed</th></tr>
+      ${m.threshold_tradeoff.map((t,i,a)=>`<tr${i===a.length-1?' class="hl"':''}><td>${(t.threshold*100).toFixed(1)}%</td><td class="n">${P(t.precision)}</td><td class="n">${P(t.recall)}</td><td class="n">${t.wrongly_rejected}</td><td class="n">${t.missed}</td></tr>`).join('')}</table>
+      <p style="margin-top:10px">The highlighted line, chosen to maximise F1, rejects very few good borrowers but misses more defaults. A lender that fears losses more than lost business would pick a lower line.</p></div>
+  </div>
+  <div class="card"><h2>Model comparison</h2><p>Same test loans, each step improving on the last.</p>
+    <table><tr><th>Model</th><th class="n">Accuracy</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">F1</th></tr>
+    ${row('Logistic regression (baseline)',b)}${row('XGBoost, default settings',x)}${row('XGBoost, tuned and calibrated',m,true)}</table></div>
+  <div class="cols">
+    <div class="card"><h2>How it was built</h2><ol>
+      <li><b>Cleaned the data.</b> Removed duplicates and impossible ages and employment lengths.</li>
+      <li><b>Prepared features.</b> Filled gaps and encoded categories inside the model pipeline.</li>
+      <li><b>Compared models</b> with 5-fold cross-validation: ROC-AUC 0.87 for logistic regression, 0.94 for XGBoost.</li>
+      <li><b>Tuned XGBoost</b> with 150 random search trials, scored on average precision.</li>
+      <li><b>Calibrated the probabilities</b> (sigmoid) so a score of 30% means about 30%.</li>
+      <li><b>Set the decision line</b> from the precision-recall curve.</li>
+      <li><b>Added explanations</b> with SHAP values, shown on each assessment.</li></ol></div>
+    <div class="card"><h2>Limits to keep in mind</h2><ul>
+      <li>The decision line was tuned on the same test loans used for the results above, so real performance is likely a little lower.</li>
+      <li>The data is a public dataset, not a lender's own records, and was not checked for fairness across groups.</li>
+      <li>Scores for inputs outside the training ranges are less reliable, and the app warns when that happens.</li>
+      <li>This is a portfolio demonstration, not a lending tool.</li></ul></div>
+  </div>`}).catch(()=>{$('model').innerHTML='<p class="err">Model details are unavailable right now.</p>'});
+</script>
 </body>
 </html>
